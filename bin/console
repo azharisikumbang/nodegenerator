@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+
+const message = {
+
+	"error" : "someting when wrong"
+}
+
+const config = {
+	"path" : {
+		"controller" : "controllers"
+	}
+}
+
+const fs = require("fs")
+const path = require("path")
+const Handlebars = require("Handlebars")
+const readline = require("readline")
+const argv = require('minimist')(process.argv.slice(2))
+
+const rl = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout,
+})
+
+if (argv.hasOwnProperty("_")) {
+	
+	const _command = argv["_"][0].split(":")
+
+	if (_command[0] == "make") {
+
+		switch(_command[1]) {
+			case "controller":
+	
+				const source = 'const {{name}} = {\r\n\r\n\tindexAction(req, res) {\r\n\t\tres.render(\"index\", { title: \'{{name}}\' })\r\n\t}\r\n\r\n}\r\n\r\nmodule.exports = {{name}}'
+
+				const template = Handlebars.compile(source)
+
+				rl.question("Controller Name ( ex. UserController ) :\n> ", name => {
+					const contents = template({name: name})
+					fs.writeFile(path.join(config.path.controller, name + ".js"),
+						contents, 
+						err => {
+							if (err) throw err;
+							console.log("Controller Generated Succesfully !!")
+							rl.close();
+						}
+					)
+				})
+
+				break;
+
+
+			default:
+				console.log(message.error)
+		}
+
+	}
+
+
+}
